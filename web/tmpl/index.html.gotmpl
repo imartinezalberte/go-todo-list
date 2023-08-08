@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TODO list</title>
+    <link rel='shortcut icon' href='/static/img/favicon.ico' type='image/x-icon'>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="/static/js/main.js"></script>
+</head>
+<body>
+
+  <div>
+    <ul>
+      {{ range $k := . }}
+      <li><p>{{ . }}</p><a href="#" class="fa fa-trash task"></a></li>
+      {{- end }}
+    </ul>
+
+    <form action="/" method="POST">
+      <input type="text" placeholder="write your task here" name="task" autofocus/>
+      <input type="submit" value="Add"/>
+    </form>
+  </div>
+
+</body>
+</html>

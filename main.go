@@ -11,46 +11,7 @@ import (
 	"sync"
 )
 
-const (
-	defaultPort int = 8080
-
-	indexHTML string = `
-	<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TODO list</title>
-    <style>
-      div {
-        margin: auto;
-        width: 50%;
-        display: grid;
-        justify-content: center;
-        align-items: center;
-        margin-top: 100px;
-      }
-    </style>
-</head>
-<body>
-
-  <div>
-    <ol>
-      {{ range $k := . }}
-      <li>{{ . }}</li>
-      {{- end }}
-    </ol>
-
-    <form action="/" method="POST">
-      <input type="text" name="task"/>
-      <input type="submit" value="Add"/>
-    </form>
-  </div>
-
-</body>
-</html>
-`
-)
+const defaultPort int = 8080
 
 type (
 	config struct {
@@ -128,17 +89,22 @@ func parseCmd(cfg *config) {
 func setupServer(db *database) http.Handler {
 	mux := http.NewServeMux()
 
+	mux.Handle("/static", http.NotFoundHandler())
+	mux.Handle(
+		"/static/",
+		http.StripPrefix("/static/", http.FileServer(CustomSystem{fs: http.Dir("./web/static/")})),
+	)
 	mux.HandleFunc("/", index(db))
 	return mux
 }
 
 func index(db *database) http.HandlerFunc {
-	ts, err := template.New("index").Parse(indexHTML)
-	if err != nil {
-		panic(err)
-	}
-
 	return func(w http.ResponseWriter, r *http.Request) {
+		ts, err := template.ParseFiles("./web/tmpl/index.html.gotmpl")
+		if err != nil {
+			log.Println(err.Error())
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+		}
 		if r.Method == http.MethodGet {
 			err = ts.Execute(w, db.List())
 			if err != nil {
@@ -155,8 +121,17 @@ func index(db *database) http.HandlerFunc {
 				db.Add(strings.TrimSpace(v[0]))
 				http.Redirect(w, r, r.URL.String(), http.StatusSeeOther)
 			}
+		} else if r.Method == http.MethodDelete {
+			sanitized, _, ok := strings.Cut(strings.TrimPrefix(r.URL.Path, "/"), "/")
+			if ok {
+				log.Println("error")
+				http.Error(w, "bad request", http.StatusBadRequest)
+			}
+
+			db.Del(sanitized)
+			w.WriteHeader(http.StatusOK)
 		} else {
-			w.Header().Set("Allow", strings.Join([]string{http.MethodGet, http.MethodPost}, ", "))
+			w.Header().Set("Allow", strings.Join([]string{http.MethodGet, http.MethodPost, http.MethodDelete}, ", "))
 			w.WriteHeader(http.StatusMethodNotAllowed)
 			w.Write([]byte("method not allowed"))
 		}

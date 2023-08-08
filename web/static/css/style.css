@@ -1,0 +1,36 @@
+div {
+  margin: auto;
+  width: 50%;
+  display: grid;
+  justify-content: center;
+  align-items: center;
+  margin-top: 100px;
+}
+
+ul {
+  list-style: none;
+  padding-left : 0;
+}
+
+li {
+  color: white;
+  background-color: #13a4a4;
+  padding: 4px;
+  margin-top: 3px;
+  border-radius: 3px;
+}
+
+li p, a {
+  display: inline-block;
+}
+
+li p {
+  width: 80%;
+  margin-left: 4px;
+}
+
+li a {
+  margin-left: auto;
+  width: 10%;
+  text-align: right;
+}
